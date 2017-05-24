@@ -20,21 +20,16 @@ from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.pipeline import Pipeline
 from sklearn import metrics
 from sklearn.datasets.twenty_newsgroups import fetch_20newsgroups
-from global_variables import stop, topic_mapping, inverse_mapping, leaf_to_topic, inverse_leaf_to_topic
+from global_variables import stop, topic_mapping, inverse_mapping, leaf_to_topic, inverse_leaf_to_topic, cats
 from functions import build_hierarchy, train_classifiers, build_classifier_map, predict_class
 
-train_dataset = fetch_20newsgroups(subset='train', remove=('headers', 'footers', 'quotes'), shuffle=True, random_state=42)
+train_dataset = fetch_20newsgroups(subset='train', categories=cats, remove=('headers', 'footers', 'quotes'), shuffle=True, random_state=42)
 
 # Adjacency list represents the hieararchy tree
 # node_int_map maps the node label to the adjacency list index
 # node_int_inverse_map represents the inverse of node_int_map
 # parent_nos represents the number of nodes which are not leaves
 [adjacency_list, node_int_map, node_int_inverse_map, parent_nos] = build_hierarchy()
-
-# pipeline_transform = Pipeline([
-#     ('count_vectorizer',   CountVectorizer(stop_words=stop, ngram_range=(1,  2))),
-#     ('tfidf_transformer',  TfidfTransformer())])
-# pipeline.fit(train_dataset.data, train_dataset.target)
 
 count_vectorizer = CountVectorizer(stop_words=stop, ngram_range=(1,  2))
 tfidf_transformer = TfidfTransformer()
@@ -51,7 +46,7 @@ print("Length of classifiers : ")
 print(len(classifiers))
 print("----Training Done----")
 
-test_dataset = fetch_20newsgroups(subset='test', remove=('headers', 'footers', 'quotes'))
+test_dataset = fetch_20newsgroups(subset='test', categories=cats, remove=('headers', 'footers', 'quotes'))
 actual_answers = test_dataset.target
 
 for i in range(len(actual_answers)) : 
@@ -68,4 +63,4 @@ print(metrics.accuracy_score(correct_answers, predictions, normalize=True)*100)
 print("The F-Score is : ")
 print(metrics.f1_score(correct_answers, predictions, average='macro'))
 print("Total number of articles in test set it : ")
-print(len(predictions))
+print(len(predictions)) 
