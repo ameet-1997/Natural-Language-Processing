@@ -75,4 +75,4 @@ def predict_class(document, classifiers, classifier_map, inverse_leaf_to_topic, 
 		current_class = classifiers[classifier_map[current_classifier]].predict(document)[0]
 		# current_classifier = inverse_leaf_to_topic[node_int_map[current_class]]
 		current_classifier = node_int_map[inverse_leaf_to_topic[current_class]]
-	return current_class
+	return current_class 
