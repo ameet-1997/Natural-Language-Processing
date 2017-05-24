@@ -22,6 +22,9 @@ from sklearn import metrics
 from sklearn.datasets.twenty_newsgroups import fetch_20newsgroups
 from global_variables import stop, topic_mapping, inverse_mapping, leaf_to_topic, inverse_leaf_to_topic, cats
 from functions import build_hierarchy, train_classifiers, build_classifier_map, predict_class
+import time
+
+start = time.clock()
 
 train_dataset = fetch_20newsgroups(subset='train', categories=cats, remove=('headers', 'footers', 'quotes'), shuffle=True, random_state=42)
 
@@ -42,25 +45,18 @@ classifier_map = build_classifier_map(adjacency_list)
 classifiers = [MultinomialNB() for i in range(parent_nos)]
 # 0 represents the root
 garbage = train_classifiers(classifiers, adjacency_list, 0, features, np.array(train_dataset.target), node_int_inverse_map, leaf_to_topic, classifier_map)
-print("Length of classifiers : ")
-print(len(classifiers))
+print("Length of classifiers : "+str(len(classifiers)))
 print("----Training Done----")
 
 test_dataset = fetch_20newsgroups(subset='test', categories=cats, remove=('headers', 'footers', 'quotes'))
 actual_answers = test_dataset.target
+documents = tfidf_transformer.transform(count_vectorizer.transform(test_dataset.data))
+predictions = predict_class(documents, classifiers, classifier_map, inverse_leaf_to_topic, node_int_map, count_vectorizer, tfidf_transformer)
 
-for i in range(len(actual_answers)) : 
-	if actual_answers[i] == 5 : 
-		actual_answers[i] = 2
-predictions = []
-
-for text in test_dataset.data : 
-	predictions.append(predict_class([text], classifiers, classifier_map, inverse_leaf_to_topic, node_int_map, count_vectorizer, tfidf_transformer))
 print("----Testing Done----")
 
-print("The Accuracy is : ")
-print(metrics.accuracy_score(correct_answers, predictions, normalize=True)*100)
-print("The F-Score is : ")
-print(metrics.f1_score(correct_answers, predictions, average='macro'))
-print("Total number of articles in test set it : ")
-print(len(predictions)) 
+print("The Accuracy is : "+str(metrics.accuracy_score(actual_answers, predictions, normalize=True)*100))
+print("The F-Score is : "+str(metrics.f1_score(correct_answers, predictions, average='macro')))
+print("Total number of articles in test set it : "+str(len(predictions)))
+
+print("Time Elapsed : "+str(time.clock()-start))
