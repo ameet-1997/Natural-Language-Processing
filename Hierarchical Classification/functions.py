@@ -67,12 +67,15 @@ def build_classifier_map(adjacency_list) :
 			counter += 1
 	return classifier_map
 
-def predict_class(document, classifiers, classifier_map, inverse_leaf_to_topic, node_int_map, count_vectorizer, tfidf_transformer):
-	current_classifier = 0
-	current_class = 0
-	document = tfidf_transformer.transform(count_vectorizer.transform(document))
-	while current_classifier in classifier_map:
-		current_class = classifiers[classifier_map[current_classifier]].predict(document)[0]
-		# current_classifier = inverse_leaf_to_topic[node_int_map[current_class]]
-		current_classifier = node_int_map[inverse_leaf_to_topic[current_class]]
-	return current_class 
+def predict_class(documents, classifiers, classifier_map, inverse_leaf_to_topic, node_int_map, count_vectorizer, tfidf_transformer):
+	till = documents.shape[0]
+	final_answer = []
+	for i in range(till) : 
+		current_classifier = 0
+		current_class = 0
+		document = documents[i]
+		while current_classifier in classifier_map:
+			current_class = classifiers[classifier_map[current_classifier]].predict(document)[0]
+			current_classifier = node_int_map[inverse_leaf_to_topic[current_class]]
+		final_answer.append(current_class)
+	return final_answer
