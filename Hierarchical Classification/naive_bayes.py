@@ -45,7 +45,6 @@ classifier_map = build_classifier_map(adjacency_list)
 classifiers = [MultinomialNB() for i in range(parent_nos)]
 # 0 represents the root
 garbage = train_classifiers(classifiers, adjacency_list, 0, features, np.array(train_dataset.target), node_int_inverse_map, leaf_to_topic, classifier_map)
-print("Length of classifiers : "+str(len(classifiers)))
 print("----Training Done----")
 
 test_dataset = fetch_20newsgroups(subset='test', categories=cats, remove=('headers', 'footers', 'quotes'))
@@ -56,7 +55,7 @@ predictions = predict_class(documents, classifiers, classifier_map, inverse_leaf
 print("----Testing Done----")
 
 print("The Accuracy is : "+str(metrics.accuracy_score(actual_answers, predictions, normalize=True)*100))
-print("The F-Score is : "+str(metrics.f1_score(correct_answers, predictions, average='macro')))
+print("The F-Score is : "+str(metrics.f1_score(actual_answers, predictions, average='macro')))
 print("Total number of articles in test set it : "+str(len(predictions)))
 
 print("Time Elapsed : "+str(time.clock()-start))
