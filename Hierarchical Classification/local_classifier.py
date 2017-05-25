@@ -26,36 +26,47 @@ import time
 
 start = time.clock()
 
-train_dataset = fetch_20newsgroups(subset='train', categories=cats, remove=('headers', 'footers', 'quotes'), shuffle=True, random_state=42)
+train_dataset = fetch_20newsgroups(subset='train', categories=cats, shuffle=True, random_state=42)
 
 # Adjacency list represents the hieararchy tree
 # node_int_map maps the node label to the adjacency list index
 # node_int_inverse_map represents the inverse of node_int_map
 # parent_nos represents the number of nodes which are not leaves
 [adjacency_list, node_int_map, node_int_inverse_map, parent_nos] = build_hierarchy()
-
+start_time = time.process_time()
 count_vectorizer = CountVectorizer(stop_words=stop, ngram_range=(1,  2))
 tfidf_transformer = TfidfTransformer()
 features = count_vectorizer.fit_transform(train_dataset.data)
 features = tfidf_transformer.fit_transform(features)
-print("---Built Features---")
+print("----Built Features----")
 
 classifier_map = build_classifier_map(adjacency_list)
 # Construct one clissifier for each parent node
-classifiers = [MultinomialNB() for i in range(parent_nos)]
+classifiers = [SGDClassifier(alpha=1e-3, random_state=42) for i in range(parent_nos)]
+print("----Created Classifiers----")
 # 0 represents the root
+
 garbage = train_classifiers(classifiers, adjacency_list, 0, features, np.array(train_dataset.target), node_int_inverse_map, leaf_to_topic, classifier_map)
 print("----Training Done----")
+print(time.process_time()-start_time)
 
-test_dataset = fetch_20newsgroups(subset='test', categories=cats, remove=('headers', 'footers', 'quotes'))
+test_dataset = fetch_20newsgroups(subset='test', categories=cats)
 actual_answers = test_dataset.target
+start = time.process_time()
 documents = tfidf_transformer.transform(count_vectorizer.transform(test_dataset.data))
-predictions = predict_class(documents, classifiers, classifier_map, inverse_leaf_to_topic, node_int_map, count_vectorizer, tfidf_transformer)
+predictions = predict_class(documents, classifiers, classifier_map, leaf_to_topic, node_int_inverse_map, count_vectorizer, tfidf_transformer)
+print(time.process_time()-start_time)
+#predictions = classifiers[0].predict(documents)
+
+f = open("predictions.txt","w")
+for i in range(len(predictions)) : 
+	f.write("Actual Answer : "+str(actual_answers[i]) + "Prediction : "+str(predictions[i])+"\n")
 
 print("----Testing Done----")
 
 print("The Accuracy is : "+str(metrics.accuracy_score(actual_answers, predictions, normalize=True)*100))
 print("The F-Score is : "+str(metrics.f1_score(actual_answers, predictions, average='macro')))
-print("Total number of articles in test set it : "+str(len(predictions)))
+print("Total number of articles in the training set is : "+str(len(train_dataset.target)))
+print("Total number of articles in the test set is : "+str(len(predictions)))
 
 print("Time Elapsed : "+str(time.clock()-start))
