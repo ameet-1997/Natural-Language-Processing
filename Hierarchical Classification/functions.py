@@ -34,25 +34,26 @@ def build_hierarchy():
 	return [adjacency_list, node_int_map, node_int_inverse_map, parent_nos]
 
 def train_classifiers(classifiers, adjacency_list, node, features, train_dataset_target, node_int_inverse_map, leaf_to_topic, classifier_map) :
-	# print("Node Number : "+str(node_int_inverse_map[node]))
-	# print("Here")
 	if not adjacency_list[node] :
 		documents = node
 		documents = leaf_to_topic[node_int_inverse_map[node]]
-
-		boolean_array = np.empty(shape=len(train_dataset_target), dtype=bool)
-		for i in range(len(train_dataset_target)) :
-			if train_dataset_target[i] == documents :
-				boolean_array[i] = True
-			else :
-				boolean_array[i] = False
+		boolean_array = (train_dataset_target == documents)		# Vectorizing the code
 		return boolean_array
 	else :
-		boolean_array = np.ones(shape=len(train_dataset_target), dtype=bool)
+		boolean_array = np.zeros(shape=len(train_dataset_target), dtype=bool)
+		local_target = np.ones(shape=len(train_dataset_target), dtype=int)
 		for child in adjacency_list[node] : 
-			boolean_array = np.logical_or(boolean_array, train_classifiers(classifiers, adjacency_list, child, features, train_dataset_target, node_int_inverse_map, leaf_to_topic, classifier_map))
+			temp_array = train_classifiers(classifiers, adjacency_list, child, features, train_dataset_target, node_int_inverse_map, leaf_to_topic, classifier_map)
+			local_target[temp_array] = child
+			boolean_array = np.logical_or(boolean_array, temp_array)
 		local_features = features[boolean_array,:]
-		local_target = train_dataset_target[boolean_array]
+		local_target = local_target[boolean_array]
+		print("Node Number : "+str(node)+" Number of Training examples : "+str(len(local_target)))
+		# zz = {}
+		# for i in local_target : 
+		# 	zz[i] = 1
+		# print("The children nodes are : ")
+		# print(zz.keys())
 		classifiers[classifier_map[node]].fit(local_features, local_target)
 		return boolean_array
 
@@ -67,15 +68,28 @@ def build_classifier_map(adjacency_list) :
 			counter += 1
 	return classifier_map
 
-def predict_class(documents, classifiers, classifier_map, inverse_leaf_to_topic, node_int_map, count_vectorizer, tfidf_transformer):
+def predict_class(documents, classifiers, classifier_map, leaf_to_topic, node_int_inverse_map, count_vectorizer, tfidf_transformer):
 	till = documents.shape[0]
-	final_answer = []
+	final_answer = classifiers[0].predict(documents)
 	for i in range(till) : 
-		current_classifier = 0
-		current_class = 0
+		current_class = final_answer[i]
 		document = documents[i]
-		while current_classifier in classifier_map:
-			current_class = classifiers[classifier_map[current_classifier]].predict(document)[0]
-			current_classifier = node_int_map[inverse_leaf_to_topic[current_class]]
-		final_answer.append(current_class)
+		while current_class in classifier_map:
+			current_class = classifiers[classifier_map[current_class]].predict(document)[0]
+		# 	print("Current Class is : "+str(current_class))
+		# print("--------------")
+		final_answer[i] = leaf_to_topic[node_int_inverse_map[current_class]]
 	return final_answer
+
+# def predict_class(documents, classifiers, classifier_map, leaf_to_topic, node_int_inverse_map, count_vectorizer, tfidf_transformer):
+# 	till = documents.shape[0]
+# 	final_answer = []
+# 	for i in range(till) : 
+# 		current_class = 0
+# 		document = documents[i]
+# 		while current_class in classifier_map:
+# 			current_class = classifiers[classifier_map[current_class]].predict(document)[0]
+# 		# 	print("Current Class is : "+str(current_class))
+# 		# print("--------------")
+# 		final_answer.append(leaf_to_topic[node_int_inverse_map[current_class]])
+# 	return final_answer
