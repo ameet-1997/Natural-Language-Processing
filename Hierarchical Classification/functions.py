@@ -48,12 +48,6 @@ def train_classifiers(classifiers, adjacency_list, node, features, train_dataset
 			boolean_array = np.logical_or(boolean_array, temp_array)
 		local_features = features[boolean_array,:]
 		local_target = local_target[boolean_array]
-		print("Node Number : "+str(node)+" Number of Training examples : "+str(len(local_target)))
-		# zz = {}
-		# for i in local_target : 
-		# 	zz[i] = 1
-		# print("The children nodes are : ")
-		# print(zz.keys())
 		classifiers[classifier_map[node]].fit(local_features, local_target)
 		return boolean_array
 
@@ -68,28 +62,18 @@ def build_classifier_map(adjacency_list) :
 			counter += 1
 	return classifier_map
 
+def change_index_value(x) : 
+	return leaf_to_topic[node_int_inverse_map[current_class]]
+
 def predict_class(documents, classifiers, classifier_map, leaf_to_topic, node_int_inverse_map, count_vectorizer, tfidf_transformer):
 	till = documents.shape[0]
-	final_answer = classifiers[0].predict(documents)
-	for i in range(till) : 
-		current_class = final_answer[i]
-		document = documents[i]
-		while current_class in classifier_map:
-			current_class = classifiers[classifier_map[current_class]].predict(document)[0]
-		# 	print("Current Class is : "+str(current_class))
-		# print("--------------")
-		final_answer[i] = leaf_to_topic[node_int_inverse_map[current_class]]
-	return final_answer
+	final_answer = np.zeros(shape=till)
+	all_classifiers = sorted(list(classifier_map.keys()))
+	print(all_classifiers)
 
-# def predict_class(documents, classifiers, classifier_map, leaf_to_topic, node_int_inverse_map, count_vectorizer, tfidf_transformer):
-# 	till = documents.shape[0]
-# 	final_answer = []
-# 	for i in range(till) : 
-# 		current_class = 0
-# 		document = documents[i]
-# 		while current_class in classifier_map:
-# 			current_class = classifiers[classifier_map[current_class]].predict(document)[0]
-# 		# 	print("Current Class is : "+str(current_class))
-# 		# print("--------------")
-# 		final_answer.append(leaf_to_topic[node_int_inverse_map[current_class]])
-# 	return final_answer
+	for i in all_classifiers:
+		temp_bool = (final_answer == i)
+		final_answer[temp_bool] = np.array(classifiers[classifier_map[i]].predict(documents[temp_bool,:]))
+	for i in range(till) : 
+		final_answer[i] = leaf_to_topic[node_int_inverse_map[final_answer[i]]]
+	return list(final_answer)
