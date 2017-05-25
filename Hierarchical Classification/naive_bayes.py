@@ -38,7 +38,7 @@ count_vectorizer = CountVectorizer(stop_words=stop, ngram_range=(1,  2))
 tfidf_transformer = TfidfTransformer()
 features = count_vectorizer.fit_transform(train_dataset.data)
 features = tfidf_transformer.fit_transform(features)
-print("----Built Features----")
+print("---Built Features---")
 
 classifier_map = build_classifier_map(adjacency_list)
 # Construct one clissifier for each parent node
