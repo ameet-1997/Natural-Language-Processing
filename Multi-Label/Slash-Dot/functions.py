@@ -36,7 +36,7 @@ def load_from_arff(filename, labelcount, endian="big", input_feature_type='float
         return X, y
 
 def fill_bool_array(bool_array, label_list, y_train):
-    for i in range(1,3):
+    for i in range(3):
         for j in label_list[i]:
             bool_array[i] = np.logical_or(np.array(bool_array[i]), np.array(y_train[:,j] == 1).flatten())
             # Flatten is being used to convert multi-dimensional array to single dimension
@@ -44,6 +44,7 @@ def fill_bool_array(bool_array, label_list, y_train):
 
 def fit_classifiers(classifiers, bool_array, label_list, X_train, y_train):
     temp_y_train = np.zeros(shape=(y_train.shape[0], 4))
+    
     for i in range(y_train.shape[0]):
         temp_y_train[i,3] = y_train[i,20]
         temp_y_train[i,2] = y_train[i,8]
@@ -56,6 +57,7 @@ def fit_classifiers(classifiers, bool_array, label_list, X_train, y_train):
         for j in label_list[1]:
             answer = answer or y_train[i,j]
         temp_y_train[i,0] = int(answer)
+
     classifiers[0].fit(X_train[bool_array[0],:], temp_y_train[bool_array[0],:])
 
     for i in range(1,3):
@@ -63,4 +65,4 @@ def fit_classifiers(classifiers, bool_array, label_list, X_train, y_train):
         temp_y_train = temp_y_train[bool_array[i],:]
         # classifiers[i].fit(X_train[bool_array[i],:], y_train[bool_array[i], label_list[i]])
         classifiers[i].fit(X_train[bool_array[i],:], temp_y_train)
-    return classifiers
+    return classifiers 
