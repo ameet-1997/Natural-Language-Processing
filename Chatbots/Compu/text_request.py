@@ -10,6 +10,7 @@ except ImportError:
     )
     import apiai
 
+# Insert Client Access Token Here
 CLIENT_ACCESS_TOKEN = 'client_access_token'
 
 
