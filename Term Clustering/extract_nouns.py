@@ -88,7 +88,9 @@ for i in range(number_of_attributes):
 
 
 
-clustering = SpectralBiclustering()
+# Set n_clusters value
+clusters = 10
+clustering = SpectralBiclustering(n_clusters=clusters)
 clustering.fit(similarity_matrix)
 
 contents_of_cluster = ["" for i in range(np.unique(clustering.row_labels_).shape[0])]
